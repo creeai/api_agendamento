@@ -6,33 +6,54 @@ interface LogData {
   timestamp: string
   method?: string
   path?: string
+  pathname?: string
   statusCode?: number
   duration?: number
   payload?: unknown
   response?: unknown
   error?: unknown
+  authError?: unknown
   userId?: string
   role?: string
   hasUser?: boolean
+  hasUserData?: boolean
   companyId?: string
   apiKeyId?: string
+  apiClientId?: string
+  queryParams?: unknown
+  professionalId?: string
+  serviceId?: string
+  slotStep?: number
+  closingTime?: string
+  timezone?: string
+  from?: string
+  to?: string
+  count?: number
+  mapSize?: number
+  sampleSlots?: unknown
+  windowsCount?: number
+  realIdsInMap?: number
+  realIdsAssigned?: number
+  slotsWithRealIds?: unknown
+  sampleWindows?: unknown
+  datesCount?: number
+  totalSlots?: number
+  origin?: string
+  [key: string]: unknown // Permite campos adicionais dinâmicos
 }
 
 export class Logger {
   private formatLog(data: LogData): string {
-    const logEntry = {
-      ...data,
-      timestamp: new Date().toISOString()
-    }
-    return JSON.stringify(logEntry, null, 2)
+    return JSON.stringify(data, null, 2)
   }
 
   private log(level: LogLevel, data: Omit<LogData, "level" | "timestamp">) {
     const logData: LogData = {
       level,
-      ...data,
-      timestamp: new Date().toISOString()
-    }
+      message: data.message as string,
+      timestamp: new Date().toISOString(),
+      ...data
+    } as LogData
 
     const formatted = this.formatLog(logData)
 
