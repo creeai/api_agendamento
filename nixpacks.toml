@@ -1,11 +1,11 @@
 # Configuração do Nixpacks para EasyPanel
-# Força Node.js 20 e garante instalação de todas as dependências
+# Força Node.js 20 e garante instalação de todas as dependências (incluindo devDependencies)
 
 [phases.setup]
 nixPkgs = ["nodejs_20", "npm-10_x"]
 
 [phases.install]
-cmds = ["npm ci"]
+cmds = ["npm ci --include=dev"]
 
 [phases.build]
 cmds = ["npm run build"]

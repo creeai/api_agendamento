@@ -66,16 +66,23 @@ Na seção **"Construção"** ou **"Build"**:
 Se estiver usando **Nixpacks** (como na imagem):
 
 - **Versão**: `1.34.1` (ou a mais recente disponível)
-- **Comando de Instalação**: `npm ci` ⚠️ **Use `npm ci` em vez de `npm install` para builds mais confiáveis**
-- **Comando de Build**: `npm run build` ⚠️ **NÃO use `npm run dev`!**
-- **Comando de Início**: `npm start` ✅
+- **Comando de Instalação**: ⚠️ **DEIXE VAZIO** - O arquivo `nixpacks.toml` já configura isso automaticamente
+- **Comando de Build**: ⚠️ **DEIXE VAZIO** - O arquivo `nixpacks.toml` já configura isso automaticamente
+- **Comando de Início**: ⚠️ **DEIXE VAZIO** - O arquivo `nixpacks.toml` já configura isso automaticamente
 - **Pacotes Nix**: (deixe vazio)
 - **Pacotes APT**: (deixe vazio)
 
-**⚠️ PROBLEMA COMUM:** Se você receber erros sobre Node.js 18 ou módulos não encontrados:
+**✅ IMPORTANTE:** O arquivo `nixpacks.toml` na raiz do projeto já configura tudo automaticamente:
+- Força Node.js 20
+- Usa `npm ci --include=dev` para instalar todas as dependências (incluindo devDependencies)
+- Configura o build e start corretamente
 
-1. O arquivo `nixpacks.toml` na raiz do projeto força Node.js 20
-2. Certifique-se de que o arquivo `nixpacks.toml` está commitado no repositório
+**⚠️ Se você configurar comandos manualmente no EasyPanel, eles podem sobrescrever o `nixpacks.toml`!**
+
+**⚠️ PROBLEMA COMUM:** Se você receber erros sobre `autoprefixer` ou módulos não encontrados:
+
+1. **Remova os comandos manuais** do EasyPanel (deixe vazios)
+2. O arquivo `nixpacks.toml` já está configurado corretamente
 3. Se ainda não funcionar, use a **Opção 2: Dockerfile** abaixo
 
 **Opção 2: Dockerfile**
