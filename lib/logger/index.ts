@@ -12,6 +12,8 @@ interface LogData {
   response?: unknown
   error?: unknown
   userId?: string
+  role?: string
+  hasUser?: boolean
   companyId?: string
   apiKeyId?: string
 }
