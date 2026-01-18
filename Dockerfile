@@ -12,7 +12,8 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 
 # Instalar TODAS as dependências (incluindo devDependencies para o build)
-RUN npm ci && npm cache clean --force
+# Usar --include=dev para garantir que @types/* sejam instalados
+RUN npm ci --include=dev && npm cache clean --force
 
 # Copiar código fonte
 COPY . .
