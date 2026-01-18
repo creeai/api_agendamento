@@ -8,6 +8,7 @@ const SwaggerUI = dynamic(
   async () => {
     // Importar CSS e componente apenas no cliente
     if (typeof window !== "undefined") {
+      // @ts-ignore - CSS não tem tipos TypeScript
       await import("swagger-ui-react/swagger-ui.css")
     }
     const SwaggerUIBundle = await import("swagger-ui-react")

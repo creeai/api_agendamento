@@ -56,12 +56,16 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    const logResponse = response.data 
+      ? {...response, data: {...response.data, key: "[REDACTED]"}}
+      : response
+
     logger.response({
       method: "POST",
       path: "/api/v1/api-keys",
       statusCode: 201,
       duration: Date.now() - startTime,
-      response: {...response, data: {...response.data, key: "[REDACTED]"}},
+      response: logResponse,
       userId: user.id,
       companyId: user.companyId
     })
