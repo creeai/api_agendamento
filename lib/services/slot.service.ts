@@ -376,7 +376,7 @@ export class SlotService {
     const timezone = params.timezone || 'America/Sao_Paulo'
     
     // Se closingTime não foi fornecido, buscar das availabilities
-    let closingTime = params.closingTime
+    let closingTime: string | undefined = params.closingTime
     if (!closingTime) {
       const availabilities = await availabilityService.getAllAvailabilities(
         params.companyId,
@@ -391,6 +391,19 @@ export class SlotService {
       } else {
         closingTime = '18:00' // Default
       }
+    }
+
+    // Validar que closingTime foi definido (obrigatório para gerar slots)
+    if (!closingTime || typeof closingTime !== 'string') {
+      const error = new Error("Closing time is required to generate service slots. No availability found and no closing time provided.")
+      logger.error({
+        message: "Failed to generate service windows: closing time missing",
+        error: error.message,
+        professionalId: params.professionalId,
+        serviceId: params.serviceId,
+        companyId: params.companyId
+      })
+      throw error
     }
 
     logger.debug({
