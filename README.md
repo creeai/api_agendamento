@@ -73,6 +73,13 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 # API Key Settings (opcional)
 API_KEY_PREFIX=sk_
 API_KEY_RANDOM_LENGTH=32
+
+# CORS Settings (opcional)
+# Permite origens customizadas além do WeWeb
+# Pode ser uma única origem ou múltiplas separadas por vírgula
+# Exemplo: FRONTEND_ORIGIN=https://app.meudominio.com
+# Exemplo múltiplas: FRONTEND_ORIGIN=https://app1.com,https://app2.com
+FRONTEND_ORIGIN=
 ```
 
 ### 4. Execute a aplicação
@@ -82,6 +89,215 @@ npm run dev
 ```
 
 A aplicação estará disponível em `http://localhost:3000`
+
+## 🌐 Configuração CORS
+
+A API está configurada para aceitar requisições do WeWeb e origens customizadas:
+
+### Origens Permitidas
+
+- `https://editor.weweb.io` (Editor do WeWeb)
+- Qualquer subdomínio `.weweb.app` (ex: `https://xxxxx.weweb.app`)
+- Origem customizada via variável de ambiente `FRONTEND_ORIGIN`
+
+### Headers Permitidos
+
+- `Content-Type`
+- `Authorization`
+
+### Métodos Permitidos
+
+- `GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`
+
+### Testando CORS
+
+**Preflight (OPTIONS):**
+```bash
+curl -X OPTIONS \
+  -H "Origin: https://editor.weweb.io" \
+  -H "Access-Control-Request-Method: GET" \
+  -H "Access-Control-Request-Headers: Authorization" \
+  -v \
+  https://seu-dominio.com/api/v1/professionals/ID/slots
+```
+
+**Requisição Real (GET):**
+```bash
+curl -X GET \
+  -H "Origin: https://editor.weweb.io" \
+  -H "Authorization: Bearer sua-api-key" \
+  -v \
+  https://seu-dominio.com/api/v1/professionals/ID/slots?from=2026-01-27T11:00:00Z&to=2026-02-09T11:15:00Z&serviceId=ID
+```
+
+Você deve ver os headers `Access-Control-Allow-Origin`, `Access-Control-Allow-Methods` e `Access-Control-Allow-Headers` nas respostas.
+
+## 🔗 Usando a API com ngrok
+
+Quando expor a API via ngrok para uso com WeWeb ou outros clientes via browser, **é OBRIGATÓRIO** incluir o header `ngrok-skip-browser-warning` na **requisição** para evitar a página de warning do ngrok.
+
+### ⚠️ Problema Comum
+
+Sem o header na requisição, o ngrok intercepta ANTES da requisição chegar ao servidor e retorna HTML (página de warning) em vez de JSON, causando erros como `ERR_NGROK_6024` ou `ERR_NETWORK`.
+
+**⚠️ IMPORTANTE:** O header `ngrok-skip-browser-warning` deve ser enviado pelo **CLIENTE** na requisição. O servidor não pode resolver isso, pois o ngrok intercepta antes.
+
+### ✅ Solução
+
+**1. Healthcheck (sem autenticação):**
+
+```bash
+# ❌ SEM header ngrok (retorna HTML do ngrok)
+curl https://rodger-superstrong-anitra.ngrok-free.dev/api/v1/health
+
+# ✅ COM header ngrok (retorna JSON)
+curl -H "ngrok-skip-browser-warning: true" \
+  https://rodger-superstrong-anitra.ngrok-free.dev/api/v1/health
+```
+
+**2. Endpoint de API (com autenticação):**
+
+```bash
+curl -X GET \
+  -H "ngrok-skip-browser-warning: true" \
+  -H "Authorization: Bearer sua-api-key" \
+  "https://rodger-superstrong-anitra.ngrok-free.dev/api/v1/professionals/44d41876-24bd-4963-bd97-9ace47e56272/slots?from=2026-01-27T11:00:00Z&to=2026-02-09T11:15:00Z&serviceId=18f2320a-b217-449b-a110-ab0232935331"
+```
+
+### 📝 Configuração no WeWeb (OBRIGATÓRIO)
+
+No WeWeb, ao configurar a chamada HTTP, você **DEVE** adicionar o header na requisição:
+
+**Passo a passo:**
+
+1. Abra a configuração da chamada HTTP no WeWeb
+2. Vá em **Headers** ou **Cabeçalhos**
+3. Adicione um novo header:
+   - **Nome do Header:** `ngrok-skip-browser-warning`
+   - **Valor:** `true`
+4. Salve a configuração
+
+**Exemplo completo de configuração no WeWeb:**
+
+1. **URL:** `https://rodger-superstrong-anitra.ngrok-free.dev/api/v1/professionals/{id}/slots`
+2. **Method:** `GET`
+3. **Headers (OBRIGATÓRIOS):**
+   - `Authorization`: `Bearer sua-api-key`
+   - `ngrok-skip-browser-warning`: `true` ⚠️ **NÃO ESQUEÇA DESTE!**
+4. **Query Parameters:**
+   - `from`: `2026-01-27T11:00:00Z`
+   - `to`: `2026-02-09T11:15:00Z`
+   - `serviceId`: `18f2320a-b217-449b-a110-ab0232935331`
+
+### 🔍 Como Verificar se Está Funcionando
+
+Se você receber HTML em vez de JSON, significa que o header não está sendo enviado. Verifique:
+
+1. ✅ O header `ngrok-skip-browser-warning: true` está configurado no WeWeb?
+2. ✅ O header está sendo enviado na requisição? (verifique no DevTools do navegador)
+3. ✅ A URL está correta e apontando para o ngrok?
+
+### 🛠️ SOLUÇÃO DEFINITIVA: Configurar ngrok para adicionar header automaticamente
+
+**⚠️ IMPORTANTE:** Se você tem controle sobre o comando do ngrok, esta é a melhor solução! Configure o ngrok para adicionar o header automaticamente em TODAS as requisições.
+
+**Opção 1: Via linha de comando (RECOMENDADO):**
+
+Pare o ngrok atual (Ctrl+C) e reinicie com:
+
+```bash
+ngrok http 3000 --request-header-add "ngrok-skip-browser-warning: true"
+```
+
+**Opção 2: Via arquivo de configuração (`~/.ngrok2/ngrok.yml` ou `%USERPROFILE%\.ngrok2\ngrok.yml` no Windows):**
+
+Crie ou edite o arquivo de configuração do ngrok:
+
+```yaml
+version: "2"
+authtoken: seu-token-aqui
+tunnels:
+  api:
+    addr: 3000
+    proto: http
+    request_header:
+      add:
+        - "ngrok-skip-browser-warning: true"
+```
+
+Depois execute:
+```bash
+ngrok start api
+```
+
+**✅ Com essa configuração:**
+- O ngrok adiciona o header automaticamente em TODAS as requisições
+- Você NÃO precisa configurar o header no WeWeb
+- Funciona para qualquer cliente (browser, Postman, etc.)
+
+**🔄 Após configurar, reinicie o ngrok:**
+1. Pare o ngrok atual (Ctrl+C no terminal onde está rodando)
+2. Execute o comando acima
+3. Teste novamente no WeWeb
+
+### 📋 Checklist de Troubleshooting
+
+Se ainda não funcionar, verifique:
+
+1. ✅ O ngrok foi reiniciado com a flag `--request-header-add`?
+2. ✅ O header está sendo adicionado? (verifique no ngrok dashboard: http://127.0.0.1:4040)
+3. ✅ A URL do ngrok está correta no WeWeb?
+4. ✅ O header `Authorization: Bearer sua-api-key` está configurado no WeWeb?
+5. ✅ A origin do WeWeb está permitida? (deve ser `https://editor.weweb.io`)
+
+### 🧪 Teste Rápido
+
+Teste se o ngrok está adicionando o header corretamente:
+
+```bash
+# Deve retornar JSON (não HTML)
+curl https://rodger-superstrong-anitra.ngrok-free.dev/api/v1/health
+```
+
+Se retornar JSON sem precisar do header no curl, significa que o ngrok está configurado corretamente!
+
+### 🏥 Healthcheck
+
+A API possui um endpoint de healthcheck que não requer autenticação:
+
+```bash
+GET /api/v1/health
+```
+
+**Resposta:**
+```json
+{
+  "ok": true,
+  "name": "api-agendamento-v2",
+  "time": "2026-01-17T23:00:00.000Z"
+}
+```
+
+Use este endpoint para verificar se a API está online antes de fazer requisições autenticadas.
+
+### ⚠️ Nota sobre Erros
+
+Todos os endpoints da API retornam erros em formato JSON, seguindo o padrão:
+
+```json
+{
+  "success": false,
+  "error": "Mensagem de erro descritiva"
+}
+```
+
+**Códigos de status comuns:**
+- `200` - Sucesso
+- `400` - Erro de validação
+- `401` - Não autenticado (API key inválida ou ausente)
+- `404` - Recurso não encontrado
+- `422` - Erro de validação de negócio
+- `500` - Erro interno do servidor
 
 ## 📚 Documentação da API
 
@@ -692,6 +908,26 @@ curl -X POST http://localhost:3000/api/v1/bookings \
 - **Erro 404**: Verifique se o ID do recurso existe e pertence à sua company
 
 ## 🔒 Segurança
+
+### Slots por Serviço (janela baseada em duração)
+
+O endpoint `GET /api/v1/professionals/<id>/slots` aceita o query param opcional `serviceId` para retornar janelas de horários compatíveis com a `duration_minutes` do serviço. Parâmetros úteis:
+
+- `serviceId` (UUID) — retorna janelas agrupadas pelos slots base.
+- `slotStep` (int) — passo dos slots em minutos (default 15).
+- `minLeadMinutes` (int) — minutos mínimos de antecedência a partir de `now`.
+- `closingTime` (HH:mm) — horário de fechamento do dia (default `18:00`).
+- `timezone` — timezone para regras (default `America/Sao_Paulo`).
+
+Resposta quando `serviceId` é enviado:
+
+```json
+{
+  "success": true,
+  "service": { "id":"...","name":"Corte","duration_minutes":60,"price":55 },
+  "slots": [ { "start_time":"...","end_time":"...","label":"ter 27/01 08:00–09:00","slot_ids":["...","..."] } ]
+}
+```
 
 - **API Keys**: Armazenadas apenas como hash (Argon2) no banco
 - **Service Role Key**: Nunca exposta no frontend
