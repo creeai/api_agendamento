@@ -13,9 +13,22 @@ Sistema de agendamento completo com API REST e painel administrativo. Este MVP p
 
 ## 📋 Pré-requisitos
 
-- Node.js 18+
+- Node.js 18+ (recomendado 20+)
 - Conta no Supabase
 - npm ou yarn
+
+## 🚀 Deploy
+
+### Deploy no EasyPanel
+
+Para fazer deploy no EasyPanel, consulte o guia completo: [DEPLOY_EASYPANEL.md](./DEPLOY_EASYPANEL.md)
+
+**Resumo rápido:**
+1. Configure o repositório no EasyPanel
+2. Configure as variáveis de ambiente (Supabase, etc.)
+3. Configure build command: `npm run build`
+4. Configure start command: `npm start`
+5. Deploy!
 
 ## 🔧 Configuração
 

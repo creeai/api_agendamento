@@ -9,7 +9,9 @@ const nextConfig = {
   // Configuração para permitir importação de módulos externos
   experimental: {
     serverComponentsExternalPackages: ["swagger-ui-react"]
-  }
+  },
+  // Configuração para output standalone (otimizado para Docker/EasyPanel)
+  output: process.env.NODE_ENV === 'production' ? 'standalone' : undefined
 }
 
 module.exports = nextConfig
