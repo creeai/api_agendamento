@@ -1,6 +1,6 @@
 "use client"
 
-import {useState, useEffect} from "react"
+import {useState, useEffect, Suspense} from "react"
 import {useRouter, useSearchParams} from "next/navigation"
 import {createClient} from "@/lib/supabase/client"
 import {Button} from "@/components/ui/button"
@@ -10,7 +10,7 @@ import {Card, CardContent, CardDescription, CardHeader, CardTitle} from "@/compo
 import {ErrorAlert} from "@/components/layout/ErrorAlert"
 import {LoadingSpinner} from "@/components/layout/LoadingSpinner"
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [email, setEmail] = useState("")
@@ -152,5 +152,27 @@ export default function LoginPage() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-muted/50 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Login</CardTitle>
+            <CardDescription>Carregando...</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-center py-8">
+              <LoadingSpinner />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }
