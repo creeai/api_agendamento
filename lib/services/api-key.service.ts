@@ -131,15 +131,22 @@ export class ApiKeyService {
       throw new Error("Failed to list API keys")
     }
 
-    return data.map((key) => ({
-      id: key.id,
-      apiClientId: key.api_clients.id,
-      label: key.api_clients.label,
-      maskedKey: `${key.key_prefix}${key.api_clients.id}_****`,
-      revoked: key.revoked,
-      createdAt: key.created_at,
-      revokedAt: key.revoked_at
-    }))
+    return data.map((key) => {
+      // api_clients pode ser array ou objeto único dependendo do relacionamento
+      const apiClient = Array.isArray(key.api_clients) 
+        ? key.api_clients[0] 
+        : key.api_clients
+      
+      return {
+        id: key.id,
+        apiClientId: apiClient?.id,
+        label: apiClient?.label,
+        maskedKey: `${key.key_prefix}${apiClient?.id}_****`,
+        revoked: key.revoked,
+        createdAt: key.created_at,
+        revokedAt: key.revoked_at
+      }
+    })
   }
 
   /**
