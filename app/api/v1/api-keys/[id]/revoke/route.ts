@@ -1,6 +1,7 @@
 import {NextRequest, NextResponse} from "next/server"
 import {requireAdminApi, ApiAuthError} from "@/lib/auth/api-helpers"
 import {apiKeyService} from "@/lib/services/api-key.service"
+import {createServiceClient} from "@/lib/supabase/server"
 import {logger} from "@/lib/logger"
 import type {ApiResponse} from "@/types/api"
 
@@ -15,15 +16,48 @@ export async function PATCH(request: NextRequest, {params}: {params: {id: string
 
     const user = await requireAdminApi(request)
 
-    if (!user.companyId) {
-      const response: ApiResponse = {
-        success: false,
-        error: "User must be associated with a company"
-      }
-      return NextResponse.json(response, {status: 400})
-    }
+    // Super admin pode revogar qualquer API key, admin apenas da sua company
+    if (user.role === "super_admin") {
+      // Super admin: buscar companyId da API key
+      const supabase = await createServiceClient()
+      const {data: apiKey, error: keyError} = await supabase
+        .from("api_keys")
+        .select(
+          `
+          id,
+          api_clients!inner (
+            company_id
+          )
+        `
+        )
+        .eq("id", params.id)
+        .single()
 
-    await apiKeyService.revokeApiKey(params.id, user.companyId, user.id)
+      if (keyError || !apiKey) {
+        const response: ApiResponse = {
+          success: false,
+          error: "API key not found"
+        }
+        return NextResponse.json(response, {status: 404})
+      }
+
+      const apiClient = Array.isArray(apiKey.api_clients) 
+        ? apiKey.api_clients[0] 
+        : apiKey.api_clients
+
+      await apiKeyService.revokeApiKey(params.id, apiClient.company_id, user.id)
+    } else {
+      // Admin: apenas da sua company
+      if (!user.companyId) {
+        const response: ApiResponse = {
+          success: false,
+          error: "User must be associated with a company"
+        }
+        return NextResponse.json(response, {status: 400})
+      }
+
+      await apiKeyService.revokeApiKey(params.id, user.companyId, user.id)
+    }
 
     const response: ApiResponse = {
       success: true,

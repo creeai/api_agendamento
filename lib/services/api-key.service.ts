@@ -141,6 +141,58 @@ export class ApiKeyService {
         id: key.id,
         apiClientId: apiClient?.id,
         label: apiClient?.label,
+        companyId: apiClient?.company_id,
+        maskedKey: `${key.key_prefix}${apiClient?.id}_****`,
+        revoked: key.revoked,
+        createdAt: key.created_at,
+        revokedAt: key.revoked_at
+      }
+    })
+  }
+
+  /**
+   * Lista TODAS as API Keys de TODAS as companies (apenas para super_admin)
+   */
+  async listAllApiKeys() {
+    const supabase = await createServiceClient()
+
+    const {data, error} = await supabase
+      .from("api_keys")
+      .select(
+        `
+        id,
+        key_prefix,
+        revoked,
+        created_at,
+        revoked_at,
+        api_clients!inner (
+          id,
+          label,
+          company_id
+        )
+      `
+      )
+      .order("created_at", {ascending: false})
+
+    if (error) {
+      logger.error({
+        message: "Failed to list all API keys",
+        error
+      })
+      throw new Error("Failed to list all API keys")
+    }
+
+    return data.map((key) => {
+      // api_clients pode ser array ou objeto único dependendo do relacionamento
+      const apiClient = Array.isArray(key.api_clients) 
+        ? key.api_clients[0] 
+        : key.api_clients
+      
+      return {
+        id: key.id,
+        apiClientId: apiClient?.id,
+        label: apiClient?.label,
+        companyId: apiClient?.company_id,
         maskedKey: `${key.key_prefix}${apiClient?.id}_****`,
         revoked: key.revoked,
         createdAt: key.created_at,
