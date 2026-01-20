@@ -414,6 +414,42 @@ Endpoints que requerem autenticação JWT do Supabase:
 - **Users**: Gerenciar usuários (Super Admin)
 - **API Keys**: Gerar e gerenciar API Keys (Admin)
 
+**Como obter o JWT do Supabase:**
+
+O JWT é obtido automaticamente através dos cookies quando você faz login. Para obter o token manualmente:
+
+**No Servidor (API Routes / Server Components):**
+```typescript
+import {createClient} from "@/lib/supabase/server"
+
+const supabase = await createClient()
+const {data: {session}} = await supabase.auth.getSession()
+
+// O JWT está em session.access_token
+const jwtToken = session?.access_token
+```
+
+**No Cliente (Client Components):**
+```typescript
+import {createClient} from "@/lib/supabase/client"
+
+const supabase = createClient()
+const {data: {session}} = await supabase.auth.getSession()
+
+// O JWT está em session.access_token
+const jwtToken = session?.access_token
+```
+
+**Usando a função helper:**
+```typescript
+import {getCurrentUser} from "@/lib/auth/helpers"
+
+// Esta função já usa o JWT internamente
+const user = await getCurrentUser()
+```
+
+📚 **Documentação completa:** Veja [docs/SUPABASE_JWT.md](./docs/SUPABASE_JWT.md) para mais detalhes.
+
 #### 📅 Agendamentos (API Key)
 
 Endpoints que requerem autenticação via API Key:

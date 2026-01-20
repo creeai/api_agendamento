@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from "next/server"
-import {requireAdmin} from "@/lib/auth/helpers"
+import {requireAdminApi, ApiAuthError} from "@/lib/auth/api-helpers"
 import {apiKeyService} from "@/lib/services/api-key.service"
 import {logger} from "@/lib/logger"
 import type {ApiResponse} from "@/types/api"
@@ -13,7 +13,7 @@ export async function PATCH(request: NextRequest, {params}: {params: {id: string
       path: `/api/v1/api-keys/${params.id}/revoke`
     })
 
-    const user = await requireAdmin()
+    const user = await requireAdminApi(request)
 
     if (!user.companyId) {
       const response: ApiResponse = {
@@ -49,6 +49,11 @@ export async function PATCH(request: NextRequest, {params}: {params: {id: string
       error,
       duration: Date.now() - startTime
     })
+
+    // Tratar erros de autenticação
+    if (error instanceof ApiAuthError) {
+      return error.toResponse()
+    }
 
     const response: ApiResponse = {
       success: false,

@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from "next/server"
-import {requireAdmin} from "@/lib/auth/helpers"
+import {requireAdminApi, ApiAuthError} from "@/lib/auth/api-helpers"
 import {apiKeyService} from "@/lib/services/api-key.service"
 import {logger} from "@/lib/logger"
 import {z} from "zod"
@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       path: "/api/v1/api-keys"
     })
 
-    const user = await requireAdmin()
+    const user = await requireAdminApi(request)
 
     if (!user.companyId) {
       const response: ApiResponse = {
@@ -80,6 +80,11 @@ export async function POST(request: NextRequest) {
       duration: Date.now() - startTime
     })
 
+    // Tratar erros de autenticação
+    if (error instanceof ApiAuthError) {
+      return error.toResponse()
+    }
+
     if (error instanceof z.ZodError) {
       const response: ApiResponse = {
         success: false,
@@ -106,7 +111,7 @@ export async function GET(request: NextRequest) {
       path: "/api/v1/api-keys"
     })
 
-    const user = await requireAdmin()
+    const user = await requireAdminApi(request)
 
     if (!user.companyId) {
       const response: ApiResponse = {
@@ -142,6 +147,11 @@ export async function GET(request: NextRequest) {
       error,
       duration: Date.now() - startTime
     })
+
+    // Tratar erros de autenticação
+    if (error instanceof ApiAuthError) {
+      return error.toResponse()
+    }
 
     const response: ApiResponse = {
       success: false,

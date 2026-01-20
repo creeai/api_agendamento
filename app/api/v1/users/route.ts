@@ -1,5 +1,5 @@
 import {NextRequest, NextResponse} from "next/server"
-import {requireSuperAdmin} from "@/lib/auth/helpers"
+import {requireSuperAdminApi, ApiAuthError} from "@/lib/auth/api-helpers"
 import {userService} from "@/lib/services/user.service"
 import {logger} from "@/lib/logger"
 import {z} from "zod"
@@ -21,7 +21,7 @@ export async function POST(request: NextRequest) {
       path: "/api/v1/users"
     })
 
-    const user = await requireSuperAdmin()
+    const user = await requireSuperAdminApi(request)
 
     const body = await request.json()
     logger.debug({
@@ -81,6 +81,10 @@ export async function POST(request: NextRequest) {
       duration: Date.now() - startTime
     })
 
+    if (error instanceof ApiAuthError) {
+      return error.toResponse()
+    }
+
     if (error instanceof z.ZodError) {
       const response: ApiResponse = {
         success: false,
@@ -107,7 +111,7 @@ export async function GET(request: NextRequest) {
       path: "/api/v1/users"
     })
 
-    const user = await requireSuperAdmin()
+    const user = await requireSuperAdminApi(request)
 
     const users = await userService.listUsers()
 
@@ -141,6 +145,10 @@ export async function GET(request: NextRequest) {
       error,
       duration: Date.now() - startTime
     })
+
+    if (error instanceof ApiAuthError) {
+      return error.toResponse()
+    }
 
     const response: ApiResponse = {
       success: false,
