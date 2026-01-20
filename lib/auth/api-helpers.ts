@@ -183,10 +183,25 @@ export async function requireRoleApi(request: NextRequest, role: UserRole): Prom
 }
 
 /**
- * Requer role de admin. Retorna JSON 403 se não for admin.
+ * Requer role de admin ou super_admin. Retorna JSON 403 se não tiver permissão.
+ * super_admin tem acesso a tudo que admin tem acesso.
  */
 export async function requireAdminApi(request: NextRequest): Promise<AuthUser> {
-  return requireRoleApi(request, "admin")
+  const user = await requireAuthApi(request)
+  
+  // super_admin tem acesso a tudo que admin tem
+  if (user.role !== "admin" && user.role !== "super_admin") {
+    logger.warn({
+      message: "API auth: Acesso negado - requer role admin ou super_admin",
+      path: request.nextUrl.pathname,
+      method: request.method,
+      userId: user.id,
+      userRole: user.role
+    })
+    throw new ApiAuthError("FORBIDDEN", "Access denied. Required role: admin or super_admin")
+  }
+  
+  return user
 }
 
 /**
