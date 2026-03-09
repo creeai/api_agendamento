@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       payload: body,
       userId: user.id,
       userRole: user.role,
-      companyId: user.companyId
+      companyId: user.companyId ?? undefined
     })
 
     const validated = createApiKeySchema.parse(body)
@@ -160,7 +160,7 @@ export async function GET(request: NextRequest) {
       duration: Date.now() - startTime,
       response: response,
       userId: user.id,
-      companyId: user.companyId,
+      companyId: user.companyId ?? undefined,
       userRole: user.role
     })
 

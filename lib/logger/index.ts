@@ -96,6 +96,7 @@ export class Logger {
     payload?: unknown
     userId?: string
     companyId?: string
+    userRole?: string
     apiKeyId?: string
   }) {
     this.debug({
@@ -112,6 +113,7 @@ export class Logger {
     response?: unknown
     userId?: string
     companyId?: string
+    userRole?: string
     apiKeyId?: string
   }) {
     this.debug({
