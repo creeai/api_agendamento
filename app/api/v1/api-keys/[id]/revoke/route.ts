@@ -71,7 +71,7 @@ export async function PATCH(request: NextRequest, {params}: {params: {id: string
       duration: Date.now() - startTime,
       response: response,
       userId: user.id,
-      companyId: user.companyId
+      companyId: user.companyId ?? undefined
     })
 
     return NextResponse.json(response)
